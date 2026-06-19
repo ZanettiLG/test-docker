@@ -44,9 +44,12 @@ jobs:
 
 ## Status do workflow no Actions
 
-Status: ⏳ (aguardando push e configuração dos secrets)
+Status: ✅ Sucesso!
 
-URL da execução: https://github.com/ZanettiLG/test-docker/actions
+- **Run #1**: ❌ Falhou — `Username and password required` (secrets não configurados)
+- **Run #2**: ✅ Sucesso — `completed successfully` em 17s
+
+URL da execução: https://github.com/ZanettiLG/test-docker/actions/runs/27849765720
 
 ## Badge no README
 
