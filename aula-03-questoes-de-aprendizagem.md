@@ -1,297 +1,369 @@
 ---
+titulo: "Aula 03 — Questões de Aprendizagem"
+modulo: "Docker — Da Containerização ao Deploy em Produção"
 tipo: "checkpoint-pratico"
-modulo: "Docker, Docker Compose e Registry"
-aula_referencia: "Aula 03: Gerenciamento e CI/CD — Registry, Swarm e GitHub Actions"
-tags: [docker, registry, docker-hub, swarm, cicd, github-actions, pipeline, deploy, checkpoint]
-data: 2026-06-17
+aula_referencia: "Aula 03: Docker Registry, Docker Hub e Introdução ao CI/CD com GitHub Actions"
+data: 2026-06-18
 ---
 
-# Curso: Docker, Docker Compose e Registry — Aula 03 (Questões)
-
-## Questões de Aprendizagem — Checkpoint Prático
-
-Estas questões são seu checkpoint de aprendizagem. Complete cada uma por conta própria, sem reler a aula a cada passo. Se você consegue executar todas as questões sem consultar o material, você domina os conceitos da Aula 03.
-
----
+# Aula 03 — Questões de Aprendizagem
 
 ## Como Usar Este Arquivo
 
-Este é o **checkpoint de aprendizagem** da Aula 03 — a última do módulo. A pergunta central: *"eu realmente entendi a matéria?"*
+Este é o **checkpoint de aprendizagem** da Aula 03 — seu terceiro checkpoint do módulo. A pergunta central: *"eu realmente entendi a matéria?"*
 
-- Faça as questões na ordem (1 a 7). Cada uma tem **Conceito-chave → Objetivo → Passos → Entrega**.
-- Crie uma pasta `entregas-aula-03/` para salvar suas respostas.
+- Faça as questões na ordem (1 a 8). Cada uma tem **Conceito-chave → Objetivo → Passos → Entrega**.
+- Crie uma pasta `entregas-aula-03/` no seu repositório para salvar suas respostas.
 - Tente resolver sem consultar a aula. Se travar, cada questão indica a seção exata onde o conceito foi ensinado (no campo **Conceito-chave**).
-- Esta é a última aula do módulo — ao completar este checkpoint, você domina o pipeline Docker completo, do container ao CI/CD.
+- Ao final, o **Checklist Final** confirma se você está pronto para a Aula 04.
 
 ---
 
-## Questão 1: Push/Pull no Registry Local
+## Questão 1: Distribuição de Artefatos — Por Que o Registry?
 
-**Conceito-chave:** Registry Local (Aula 03, Seção 4).
+**Conceito-chave:** Distribuição de artefatos e papel do registry (Aula 03, Seção 1).
 
-**Objetivo:** Subir um registry local e executar o fluxo básico de push/pull com versionamento SemVer.
+**Objetivo:** Comparar os métodos de distribuição de imagens e justificar por que um registry é a solução universal.
 
 **Passos de Execução:**
 
-1. Adicione o serviço `registry:2` ao `docker-compose.yml`, exposto na porta `5000:5000`
-2. Suba o registry: `docker compose up -d registry`
-3. Construa a imagem da API com tag SemVer: `docker build -t app:1.0.0 .`
-4. Tagueie para o registry local: `docker tag app:1.0.0 localhost:5000/app:1.0.0`
-5. Publique: `docker push localhost:5000/app:1.0.0`
-6. Remova a imagem local e puxe do registry: `docker rmi localhost:5000/app:1.0.0 app:1.0.0` e `docker pull localhost:5000/app:1.0.0`
+1. Liste os três métodos improvisados de distribuir uma imagem sem registry (expostos na Seção 1).
+2. Para cada método, identifique a fragilidade principal.
+3. Explique, em suas palavras, como um registry resolve cada fragilidade.
+4. Dê um exemplo concreto de como você distribuiria a stack da Aula 02 para um colega usando registry vs sem registry.
 
-**Entrega:** crie `entregas-aula-03/01-registry-local.md`:
+**Entrega:** crie `entregas-aula-03/01-distribuicao-artefatos.md`:
 
 ```markdown
-# Entrega: Questão 1 — Registry Local
+# Questão 1 — Distribuição de Artefatos
 
-## 1. Output do `docker push`
-(cole o output completo)
+## Métodos improvisados e fragilidades
 
-## 2. Observação
-Quais camadas mostraram "Layer already exists" e quais "Pushed"? Por que?
+| Método | Fragilidade principal | Como o registry resolve |
+|---|---|---|
+| | | |
+| | | |
+| | | |
 
-## 3. Verificação
-Output de `docker compose ps` mostrando o registry como "Up"
+## Exemplo concreto
+
+Sem registry: (descreva os passos que seu colega precisaria seguir)
+
+Com registry: (descreva o fluxo com um único comando)
 ```
 
 ---
 
-## Questão 2: Publicando no Docker Hub
+## Questão 2: Versionamento SemVer
 
-**Conceito-chave:** Docker Hub (Aula 03, Seção 5).
+**Conceito-chave:** Versionamento Semântico (SemVer) (Aula 03, Seção 2).
 
-**Objetivo:** Publicar a imagem da API no Docker Hub e verificar que está acessível de qualquer máquina.
+**Objetivo:** Aplicar a convenção MAJOR.MINOR.PATCH a cenários reais de versionamento de imagens.
 
 **Passos de Execução:**
 
-1. Faça `docker login` com seu Docker ID
-2. Tagueie a imagem para seu namespace: `docker tag app:1.0.0 SEU_USUARIO/app:1.0.0`
-3. Publique: `docker push SEU_USUARIO/app:1.0.0`
-4. Acesse `https://hub.docker.com/repositories` e confirme que a imagem está lá
-5. Remova a imagem local: `docker rmi SEU_USUARIO/app:1.0.0`
-6. Baixe de uma "máquina limpa": `docker pull SEU_USUARIO/app:1.0.0`
+1. Para cada cenário abaixo, determine se a versão deve ser MAJOR, MINOR ou PATCH:
+   - Você adiciona uma nova rota `/api/v2/users` que substitui a rota antiga — clientes antigos quebram
+   - Você corrige um bug no cálculo de timeout que não afeta a interface pública
+   - Você adiciona uma rota `/api/health` sem remover nada existente
+2. Escreva o comando `docker build -t` para cada cenário, partindo da versão atual `app:1.3.0`
+3. Explique por que faria sentido publicar também a tag `:latest` para o cenário MINOR, mas não para o MAJOR
 
-**Entrega:** crie `entregas-aula-03/02-docker-hub.md`:
+**Entrega:** crie `entregas-aula-03/02-versionamento-semver.md`:
 
 ```markdown
-# Entrega: Questão 2 — Docker Hub
+# Questão 2 — Versionamento SemVer
 
-## 1. Publicação
-Output do `docker push SEU_USUARIO/app:1.0.0`
+## Cenários e versões
 
-## 2. Pull simulando outra máquina
-Output do `docker pull SEU_USUARIO/app:1.0.0`
+| Cenário | Mudança | Versão (partindo de 1.3.0) |
+|---|---|---|
+| Breaking change na API | MAJOR | |
+| Correção de bug | | |
+| Nova funcionalidade compatível | | |
 
-## 3. Decomposição
-Decomponha `SEU_USUARIO/app:1.0.0` nos 4 componentes da nomenclatura canônica (registry, namespace, repo, tag)
+## Comandos
+
+MAJOR: `docker build -t app:____ .`
+MINOR: `docker build -t app:____ .`
+PATCH: `docker build -t app:____ .`
+
+## Reflexão sobre :latest
+
+Por que :latest é arriscado no cenário MAJOR mas aceitável no MINOR?
+
 ```
 
 ---
 
-## Questão 3: Inicializando o Swarm e Criando um Serviço
+## Questão 3: Registries como Catálogo Universal
 
-**Conceito-chave:** Docker Swarm (Aula 03, Seção 6).
+**Conceito-chave:** Registries como catálogo universal de artefatos (Aula 03, Seção 3).
 
-**Objetivo:** Inicializar um cluster Swarm e criar um serviço com a imagem do Docker Hub.
+**Objetivo:** Demonstrar compreensão do papel dos registries em diferentes ecossistemas de software.
 
 **Passos de Execução:**
 
-1. Inicialize o Swarm: `docker swarm init`
-2. Verifique os nós: `docker node ls`
-3. Crie um serviço com a imagem do Docker Hub:
-   ```bash
-   docker service create --name app-api --publish 3000:3000 SEU_USUARIO/app:1.0.0
-   ```
-4. Liste os serviços: `docker service ls`
-5. Veja os detalhes: `docker service ps app-api`
-6. Teste: `curl http://localhost:3000`
+1. Preencha a tabela comparando três registries de ecossistemas diferentes com o Docker Hub.
+2. Para cada registry, identifique: ecossistema, tipo de artefato armazenado, comando de push e comando de pull.
+3. Explique qual a característica arquitetural comum a todos os registries.
 
-**Entrega:** crie `entregas-aula-03/03-swarm-servico.md`:
+**Entrega:** crie `entregas-aula-03/03-registries-universais.md`:
 
 ```markdown
-# Entrega: Questão 3 — Swarm e Serviço
+# Questão 3 — Registries como Catálogo Universal
 
-## 1. Output de `docker node ls`
-(cole o output mostrando o nó manager)
+## Tabela comparativa
 
-## 2. Output de `docker service ps app-api`
-(cole o output mostrando o container rodando)
+| Registry | Ecossistema | Artefato | Comando push | Comando pull |
+|---|---|---|---|---|
+| npmjs.com | | | | |
+| PyPI | | | | |
+| Docker Hub | | | | |
 
-## 3. Teste
-Resposta do `curl http://localhost:3000`
+## Característica comum
+
+Descreva o que todo registry tem em comum em termos de operações e arquitetura.
 ```
 
 ---
 
-## Questão 4: Escalando e Rolling Update
+## Questão 4: Transferência Delta na Prática
 
-**Conceito-chave:** Swarm — Escala e Rolling Update (Aula 03, Seção 6).
+**Conceito-chave:** Transferência delta e imutabilidade (Aula 03, Seção 4).
 
-**Objetivo:** Escalar o serviço horizontalmente e executar um rolling update sem downtime.
+**Objetivo:** Executar push/pull de duas versões e documentar a ocorrência de "Layer already exists" como prova do delta.
 
 **Passos de Execução:**
 
-1. Escale o serviço para 3 réplicas: `docker service scale app-api=3`
-2. Verifique as réplicas: `docker service ps app-api`
-3. Publique a versão `1.0.1` no Docker Hub:
-   - Altere o código (adicione uma rota)
-   - `docker build -t app:1.0.1 .`
-   - `docker tag app:1.0.1 SEU_USUARIO/app:1.0.1`
-   - `docker push SEU_USUARIO/app:1.0.1`
-4. Execute rolling update: `docker service update --image SEU_USUARIO/app:1.0.1 app-api`
-5. Verifique o progresso do update: `docker service ps app-api`
-6. Enquanto o update roda, teste se o serviço responde: `curl http://localhost:3000`
+1. Construa e publique `app:1.0.0` no registry local (como na Seção 7).
+2. Construa `app:1.0.1` com uma alteração mínima (adicione uma rota) e publique.
+3. Compare os outputs dos dois pushes — identifique quais camadas foram "Pushed" vs "Layer already exists".
+4. Execute garbage collection no registry com `docker exec CONTAINER registry garbage-collect /etc/docker/registry/config.yml` e observe se o espaço é liberado (substitua `CONTAINER` pelo nome do container do registry — veja com `docker compose ps`).
 
-**Entrega:** crie `entregas-aula-03/04-escala-rolling.md`:
+**Entrega:** crie `entregas-aula-03/04-delta-transfer.md`:
 
 ```markdown
-# Entrega: Questão 4 — Escala e Rolling Update
+# Questão 4 — Transferência Delta
 
-## 1. Escala para 3 réplicas
-Output de `docker service ps app-api` mostrando 3 réplicas
+## Output do push de app:1.0.0
+(cole o output)
 
-## 2. Rolling update
-Output de `docker service ps app-api` durante o update (mostrando réplicas sendo substituídas)
+## Output do push de app:1.0.1
+(cole o output)
 
-## 3. Disponibilidade
-O serviço ficou indisponível em algum momento durante o update?
+## Comparação
 
-## 4. Explicação
-Explique como o Swarm mantém o serviço disponível durante o rolling update
+| Camada | Push 1.0.0 | Push 1.0.1 | Transferida em 1.0.1? |
+|---|---|---|---|
+| (camada base Alpine) | | | |
+| (camada Node.js) | | | |
+| (código da app) | | | |
+
+## Análise
+
+Quantas camadas foram realmente transferidas no segundo push? Por que?
+
+## Garbage collection
+
+(cole o output do GC e explique o que foi removido)
 ```
 
 ---
 
-## Questão 5: Workflow GitHub Actions
+## Questão 5: Push para o Docker Hub (Cloud Real)
 
-**Conceito-chave:** CI/CD com GitHub Actions (Aula 03, Seção 7).
+**Conceito-chave:** Docker Hub — push para cloud real (Aula 03, Seção 8).
 
-**Objetivo:** Criar um workflow do GitHub Actions que constrói e publica a imagem automaticamente.
+**Objetivo:** Criar conta no Docker Hub, autenticar com token e publicar uma imagem em registry cloud real.
 
 **Passos de Execução:**
 
-1. Crie o repositório GitHub com seu projeto (ou use um existente)
-2. Crie `.github/workflows/deploy.yml` com:
-   - Trigger: `push` na branch `main`
-   - Job: checkout, login Docker Hub, build e push com tag `${{ github.sha }}` e `latest`
-3. Configure secrets no repositório: `DOCKER_USERNAME` e `DOCKER_PASSWORD`
-4. Faça commit e push do workflow
-5. Acompanhe a execução na aba Actions do GitHub
+1. Acesse hub.docker.com e crie uma conta (se ainda não tiver). Anote seu username.
+2. Crie um token de acesso em Account Settings → Security → New Access Token (permissão Read & Write).
+3. Autentique no terminal: `docker login -u SEU_USERNAME` (use o token como senha).
+4. Tagueie a imagem `app:1.0.0` para seu namespace: `docker tag app:1.0.0 SEU_USERNAME/app:1.0.0`
+5. Publique: `docker push SEU_USERNAME/app:1.0.0`
+6. Verifique no navegador: a imagem aparece em `https://hub.docker.com/r/SEU_USERNAME/app`
 
-**Entrega:** crie `entregas-aula-03/05-workflow-actions.md`:
+**Entrega:** crie `entregas-aula-03/05-push-dockerhub.md`:
 
 ```markdown
-# Entrega: Questão 5 — GitHub Actions
+# Questão 5 — Push para o Docker Hub
 
-## 1. Conteúdo do workflow
-(cole o YAML completo do `.github/workflows/deploy.yml`)
+## Informações da conta
 
-## 2. Print da execução
-(descreva o resultado da execução na aba Actions — sucesso ou falha?)
+Docker Hub username: _______________
+Nome do token criado: _______________
 
-## 3. Tags publicadas
-Liste as tags que foram criadas no Docker Hub após o workflow executar
+## Output do docker login
+(cole o output — deve mostrar "Login Succeeded")
+
+## Output do docker push
+(cole o output)
+
+## Verificação no navegador
+URL da imagem no Docker Hub: https://hub.docker.com/r/_______________
+
+## Reflexão
+Qual a diferença entre publicar em `localhost:5000/app:1.0.0` e `SEU_USERNAME/app:1.0.0`? Quem pode baixar cada uma?
 ```
 
 ---
 
-## Questão 6: Compreendendo Nomenclatura e Tags
+## Questão 6: Nomenclatura Canônica — Decompondo Referências
 
-**Conceito-chave:** Nomenclatura Canônica e Tags (Aula 03, Seções 5 e 8).
+**Conceito-chave:** Nomenclatura canônica e versionamento (Aula 03, Seções 8 e 9).
 
-**Objetivo:** Demonstrar compreensão da nomenclatura canônica e da diferença entre tag e digest.
+**Objetivo:** Decompor a nomenclatura canônica `registry/namespace/repo:tag` em seus 4 componentes para diferentes registries.
 
 **Passos de Execução:**
 
-1. Execute `docker pull node:22-alpine` e `docker pull docker.io/library/node:22-alpine`
-2. Verifique que ambas têm o mesmo IMAGE ID: `docker images node --format "{{.Repository}}:{{.Tag}} -> {{.ID}}"`
-3. Extraia o digest da sua imagem: `docker inspect SEU_USUARIO/app:1.0.0 | grep RepoDigests`
-4. Para cada referência abaixo, decomponha em registry, namespace, repositório e tag:
+1. Execute `docker pull node:22-alpine` (forma curta) e `docker pull docker.io/library/node:22-alpine` (forma canônica).
+2. Verifique que ambas apontam para a mesma imagem: `docker images node --format "{{.Repository}}:{{.Tag}} -> {{.ID}}"`
+3. Para cada referência abaixo, identifique registry, namespace, repositório e tag:
    - `localhost:5000/app:1.0.0`
-   - `SEU_USUARIO/app:latest`
+   - `SEU_USERNAME/app:latest`
    - `bitnami/postgresql:16`
-   - `ghcr.io/meuuser/api:1.0.0`
+   - `ghcr.io/meuuser/api:v2.0.0`
 
-**Entrega:** crie `entregas-aula-03/06-nomenclatura-tags.md`:
+**Entrega:** crie `entregas-aula-03/06-nomenclatura-canonica.md`:
 
 ```markdown
-# Entrega: Questão 6 — Nomenclatura e Tags
+# Questão 6 — Nomenclatura Canônica
 
-## 1. Verificação de IMAGE ID
-Output do `docker images node --format "{{.Repository}}:{{.Tag}} -> {{.ID}}"`
+## Verificação de IMAGE ID
+(cole o output de `docker images node --format "{{.Repository}}:{{.Tag}} -> {{.ID}}"`)
 
-## 2. Digest extraído
-Digest SHA-256 da sua imagem: `sha256:________________`
+## Tabela de decomposição
 
-## 3. Tabela de decomposição
 | Referência | Registry | Namespace | Repositório | Tag |
 |---|---|---|---|---|
 | `localhost:5000/app:1.0.0` | | | | |
-| `SEU_USUARIO/app:latest` | | | | |
+| `SEU_USERNAME/app:latest` | | | | |
 | `bitnami/postgresql:16` | | | | |
-| `ghcr.io/meuuser/api:1.0.0` | | | | |
+| `ghcr.io/meuuser/api:v2.0.0` | | | | |
+
+## Reflexão
+Por que o formato `registry/namespace/repo:tag` é considerado universal? Dê exemplos de outros registries.
 ```
 
 ---
 
-## Questão 7: Pipeline Completo — Do Commit ao Deploy
+## Questão 7: Primeiro Workflow GitHub Actions
 
-**Conceito-chave:** Pipeline Completo (Aula 03, Seção 8).
+**Conceito-chave:** GitHub Actions — primeiro workflow (Aula 03, Seções 10 e 11).
 
-**Objetivo:** Executar o pipeline completo do início ao fim: alterar código → commit → CI build → Docker Hub → Swarm.
+**Objetivo:** Criar um workflow GitHub Actions que faz build da imagem, login no Docker Hub via secrets e push automático a cada `git push`.
 
 **Passos de Execução:**
 
-1. Altere o código da API (adicione uma rota ou campo na resposta)
-2. Commit e push para a branch `main` do repositório
-3. Acompanhe o workflow no GitHub Actions até o fim
-4. Verifique a nova imagem no Docker Hub
-5. Atualize o serviço Swarm:
-   ```bash
-   docker service update --image SEU_USUARIO/app:latest app-api
-   ```
-6. Teste: `curl http://localhost:3000`
+1. Crie o diretório `.github/workflows/` no seu repositório.
+2. Crie o arquivo `docker-build-push.yml` com o workflow completo (use o modelo da Seção 11.2).
+3. Configure os secrets no GitHub:
+   - `DOCKERHUB_USERNAME`: seu username (criado na Questão 5)
+   - `DOCKERHUB_TOKEN`: token de acesso (criado na Questão 5)
+4. Faça `git add`, `git commit`, `git push`.
+5. Acesse a aba Actions do repositório e verifique se o workflow executou com sucesso (status verde).
+6. Adicione o badge de status ao README (veja Seção 12).
 
-**Entrega:** crie `entregas-aula-03/07-pipeline-completo.md`:
+**Entrega:** crie `entregas-aula-03/07-primeiro-workflow.md`:
 
 ```markdown
-# Entrega: Questão 7 — Pipeline Completo
+# Questão 7 — Primeiro Workflow GitHub Actions
 
-## 1. Pipeline documentado
-Documente cada etapa com comando e output:
+## Arquivo YAML
 
-| # | Etapa | Comando/Evento | Resultado |
-|---|---|---|---|
-| 1 | Alteração de código | `git add . && git commit` | |
-| 2 | Push | `git push origin main` | |
-| 3 | CI Build | Workflow Actions | |
-| 4 | Push Docker Hub | Workflow Actions | |
-| 5 | Update Swarm | `docker service update` | |
-| 6 | Teste | `curl localhost:3000` | |
+Cole aqui o conteúdo completo do `.github/workflows/docker-build-push.yml`:
 
-## 2. Resposta da API
-(cole a resposta do curl mostrando a alteração que você fez)
+```yaml
 
-## 3. Reflexão
-Qual a vantagem de ter o pipeline automatizado comparado a fazer manualmente `build → tag → push → SSH → pull → run`?
+```
+
+## Secrets configurados
+
+| Nome do secret | Valor (não cole o valor real — apenas marque se configurou) |
+|---|---|
+| DOCKERHUB_USERNAME | ✅ Configurado |
+| DOCKERHUB_TOKEN | ✅ Configurado |
+
+## Status do workflow no Actions
+
+Status: ✅ / ❌ (circule um)
+
+URL da execução: https://github.com/___________/___________/actions
+
+## Badge no README
+
+Linha adicionada ao README.md:
+```
+(cole aqui a linha do badge)
+```
+
+## Reflexão
+O que acontece automaticamente agora a cada `git push` na branch main?
 ```
 
 ---
 
-## Checklist Final: Pronto para o Próximo Módulo?
+## Questão 8: Estratégia de Versionamento com CI/CD
+
+**Conceito-chave:** Estratégia de versionamento e CI/CD (Aula 03, Seções 9 e 12).
+
+**Objetivo:** Definir uma estratégia de tags para ambientes dev/staging/prod com CI/CD.
+
+**Passos de Execução:**
+
+1. Considere que seu pipeline (da Questão 7) publica apenas `:latest`. Quais ambientes ficam desprotegidos?
+2. Defina uma estratégia de tags para três ambientes:
+   - Desenvolvimento local
+   - Staging (time compartilhado)
+   - Produção
+3. Para cada ambiente:
+   - Qual tag usar (SemVer, :latest, :staging, digest)?
+   - Quem pode fazer push/pull?
+   - Qual o risco de usar a tag errada?
+4. Explique como o CI/CD (GitHub Actions) poderia automatizar a promoção entre ambientes.
+
+**Entrega:** crie `entregas-aula-03/08-estrategia-versionamento.md`:
+
+```markdown
+# Questão 8 — Estratégia de Versionamento com CI/CD
+
+## Tabela de estratégia
+
+| Ambiente | Tag recomendada | Risco de usar :latest | Como promove |
+|---|---|---|---|
+| Desenvolvimento local | | | |
+| Staging (compartilhado) | | | |
+| Produção | | | |
+
+## O papel do CI/CD na promoção
+
+Descreva como um workflow GitHub Actions poderia:
+1. Publicar `:staging` a cada push na branch `develop`
+2. Publicar `:production` apenas quando a PR para `main` é aprovada
+
+## Reflexão final
+
+Por que ambientes compartilhados (staging, produção) nunca devem usar `:latest`?
+```
+
+---
+
+## Checklist Final: Pronto para a Aula 04?
 
 Marque cada item só quando conseguir fazê-lo **sem consultar a aula**:
 
-- [ ] Subir um registry local com `registry:2` e executar push/pull
-- [ ] Publicar uma imagem no Docker Hub com tag SemVer
-- [ ] Inicializar um cluster Swarm e criar um serviço
-- [ ] Escalar um serviço para múltiplas réplicas
-- [ ] Executar um rolling update sem downtime
-- [ ] Criar um workflow do GitHub Actions com build e push
-- [ ] Configurar secrets no GitHub
-- [ ] Executar o pipeline completo: commit → build → push → deploy
-- [ ] Decompor uma referência de imagem nos 4 componentes canônicos
-- [ ] Explicar a diferença entre `docker compose up` e `docker stack deploy`
+- [ ] Explicar por que distribuir imagens sem registry é frágil (usando os métodos zip, git rebuild e README)
+- [ ] Aplicar SemVer (MAJOR.MINOR.PATCH) a cenários reais de versionamento de imagens
+- [ ] Descrever o papel de um registry como catálogo universal de artefatos imutáveis
+- [ ] Explicar por que "Layer already exists" aparece no push e como o delta transfer funciona
+- [ ] Criar um registry local com `registry:2` e executar o fluxo push/pull
+- [ ] Criar conta no Docker Hub, autenticar com token e publicar imagem em cloud real
+- [ ] Decompor a nomenclatura canônica `registry/namespace/repo:tag` para diferentes registries
+- [ ] Distinguir `:latest` de tags SemVer e digest, explicando quando usar cada um
+- [ ] Explicar o que é CI/CD e como GitHub Actions automatiza o pipeline build→push
+- [ ] Criar um workflow GitHub Actions com login no Docker Hub via secrets e push automático
 
-> *Acertou todos? Você concluiu o módulo Docker! Seu pipeline de containerização está completo: do container local ao CI/CD automatizado com Swarm. Travou em algum? Releia a seção indicada na questão correspondente antes de avançar.*
+> *"Acertou todos? Você está pronto para a Aula 04, onde vamos transformar este workflow simples em um pipeline profissional com testes automatizados, cache de camadas e deploy multi-ambiente com approval gates. Travou em algum? Releia a seção indicada na questão correspondente antes de avançar."*
